@@ -1,0 +1,42 @@
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:2.5.2
+    container_name: ficct-ai-dynamodb
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data"]
+    user: "1000"
+    working_dir: /home/dynamodblocal
+    ports:
+      - "8001:8000"
+    volumes:
+      - ficct_ai_dynamo_data:/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS: dev.txt
+    image: ficct-boutique-backend-python:dev
+    container_name: ficct-ai-app
+    depends_on:
+      - dynamodb
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DYNAMODB_ENDPOINT: http://dynamodb:8000
+      JWT_PUBLIC_KEY_PATH: /app/.tools/keys/jwt_public_dev.pem
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - ./.tools/keys:/app/.tools/keys:ro
+    command: >
+      sh -c "python manage.py ensure_tables &&
+             python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+
+volumes:
+  ficct_ai_dynamo_data:
+    name: ficct_ai_dynamo_data

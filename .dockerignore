@@ -1,0 +1,16 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+staticfiles
+media
+.env
+.env.*
+README.md
+docs/
+.idea
+.vscode
+# Note: dev public key under .tools/keys IS included so the image is self-contained.
+# Production should inject the key via Docker secrets or a KMS-backed mount.
