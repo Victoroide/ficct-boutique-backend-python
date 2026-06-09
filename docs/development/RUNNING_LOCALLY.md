@@ -56,7 +56,7 @@ Authenticated calls (token from Go):
 ```powershell
 $resp = curl -s -X POST http://localhost:8093/graphql `
   -H "Content-Type: application/json" `
-  -d '{\"query\":\"mutation { login(input:{email:\\\"admin@ficct.local\\\",password:\\\"Admin123!\\\"}) { accessToken } }\"}'
+  -d '{\"query\":\"mutation { login(input:{email:\\\"<admin-email>\\\",password:\\\"<admin-password>\\\"}) { accessToken } }\"}'
 $token = ($resp | ConvertFrom-Json).data.login.accessToken
 
 curl http://localhost:8000/api/v1/clustering/segments/ -H "Authorization: Bearer $token"
