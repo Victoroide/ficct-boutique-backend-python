@@ -34,6 +34,9 @@ class AuthenticatedUser:
 
 @functools.lru_cache(maxsize=1)
 def _load_public_key() -> bytes:
+    pem = (settings.FICCT_AI.get("JWT_PUBLIC_KEY_PEM") or "").strip()
+    if pem:
+        return pem.replace("\\n", "\n").encode("utf-8")
     path = Path(settings.FICCT_AI["JWT_PUBLIC_KEY_PATH"])
     return path.read_bytes()
 

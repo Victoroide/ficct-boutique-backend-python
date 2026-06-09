@@ -125,6 +125,9 @@ FICCT_AI = {
     "JWT_PUBLIC_KEY_PATH": os.getenv(
         "JWT_PUBLIC_KEY_PATH", "/app/.tools/keys/jwt_public_dev.pem"
     ),
+    # Production injects the Go core prod public key as a PEM string (preferred
+    # over the baked dev key file).
+    "JWT_PUBLIC_KEY_PEM": os.getenv("JWT_PUBLIC_KEY_PEM", ""),
     "JWT_ISSUER": os.getenv("JWT_ISSUER", "ficct-go"),
     "JWT_AUDIENCE": os.getenv("JWT_AUDIENCE", "ficct-django"),
     "DYNAMODB_ENDPOINT": os.getenv("DYNAMODB_ENDPOINT", "http://dynamodb:8000"),
