@@ -28,16 +28,33 @@ this over the baked dev key), `JWT_ISSUER=ficct-go`, `JWT_AUDIENCE=ficct-django`
 `DYNAMODB_ACCESS_KEY_ID` / `DYNAMODB_SECRET_ACCESS_KEY`, `DYNAMODB_TABLE_PREFIX=ficct_`,
 `GO_CORE_BASE_URL`, `CORS_ALLOWED_ORIGINS`. No secrets committed.
 
-## Access mode
+## Access mode — public
 
-The GCP organization enforces **Domain Restricted Sharing**, which **blocks
-`allUsers`** (public) invoker on Cloud Run. The service is therefore **private**:
-callers must present a Google **identity token** with `roles/run.invoker`
-(audience = the service URL). To make it public, an org admin must allow `allUsers`
-for this project/service (or grant invoker to the specific caller identities).
+The org policy **Domain Restricted Sharing** blocks the `allUsers` invoker IAM
+binding. Public access is instead enabled by **disabling the Cloud Run invoker
+IAM check**:
 
-Container health is confirmed via Cloud Run logs (`gunicorn ... Listening at
-http://0.0.0.0:8000`, revision serving 100%).
+```powershell
+gcloud run services update ficct-ai --region us-central1 --no-invoker-iam-check
+```
+
+Verified: `GET https://ficct-ai-1093089304525.us-central1.run.app/api/v1/health/`
+returns **200 without an identity token**. Application-level RS256 JWT auth still
+applies to the non-public DRF endpoints.
+
+An authenticated path also works if invoker IAM is re-enabled (SA
+`ficct-ci-deployer` granted `roles/run.invoker` + an identity token whose
+audience equals the service URL):
+
+```powershell
+$T = gcloud auth print-identity-token --impersonate-service-account=ficct-ci-deployer@ficct-boutique-django.iam.gserviceaccount.com --audiences=https://ficct-ai-1093089304525.us-central1.run.app
+curl -H "Authorization: Bearer $T" https://ficct-ai-1093089304525.us-central1.run.app/api/v1/health/
+```
+
+Custom domain `ai-api-boutique.ficct.com` is a follow-up: GCP managed domain
+mapping needs the `gcloud beta` component (not installable in the current env)
+plus domain verification, or a Cloudflare proxied CNAME with a Host-header
+override (the available CF token is DNS-scoped only).
 
 ## CI/CD
 
