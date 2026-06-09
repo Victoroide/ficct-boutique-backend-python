@@ -1,0 +1,89 @@
+name: deploy-ms2-gcp
+
+# MS2 (Django AI) deploys to GCP Cloud Run. Compute = GCP; data = AWS DynamoDB.
+# min instances 0, max 1, low CPU/memory. Runs on push to main after checks pass.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'config/**'
+      - 'requirements/**'
+      - 'manage.py'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-ms2-gcp.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-ms2-gcp
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install
+        run: pip install -r requirements/dev.txt
+
+      - name: Compile + check + test
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
+          SECRET_KEY: ci-only-not-secret
+          DYNAMODB_ENDPOINT: http://localhost:8000
+        run: |
+          python -m compileall apps config
+          python manage.py check
+          pytest -q
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Build env file from secrets
+        run: |
+          cat > /tmp/env.yaml <<'YAML'
+          DJANGO_SETTINGS_MODULE: 'config.settings.prod'
+          DEBUG: 'False'
+          ALLOWED_HOSTS: '*'
+          JWT_ISSUER: 'ficct-go'
+          JWT_AUDIENCE: 'ficct-django'
+          DYNAMODB_ENDPOINT: 'https://dynamodb.us-east-1.amazonaws.com'
+          DYNAMODB_REGION: 'us-east-1'
+          DYNAMODB_TABLE_PREFIX: 'ficct_'
+          YAML
+          {
+            echo "SECRET_KEY: '${{ secrets.DJANGO_SECRET_KEY }}'"
+            echo "JWT_PUBLIC_KEY_PEM: '${{ secrets.JWT_PUBLIC_KEY_PEM }}'"
+            echo "DYNAMODB_ACCESS_KEY_ID: '${{ secrets.AWS_ACCESS_KEY_ID }}'"
+            echo "DYNAMODB_SECRET_ACCESS_KEY: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'"
+            echo "GO_CORE_BASE_URL: '${{ secrets.GO_CORE_BASE_URL }}'"
+            echo "CORS_ALLOWED_ORIGINS: '${{ secrets.CORS_ALLOWED_ORIGINS }}'"
+          } >> /tmp/env.yaml
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ficct-ai \
+            --source . \
+            --region "${{ secrets.GCP_REGION }}" \
+            --platform managed \
+            --port 8000 \
+            --min-instances 0 \
+            --max-instances 1 \
+            --memory 512Mi \
+            --cpu 1 \
+            --allow-unauthenticated \
+            --env-vars-file /tmp/env.yaml \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --quiet
