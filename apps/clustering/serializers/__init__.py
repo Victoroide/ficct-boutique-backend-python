@@ -17,3 +17,6 @@ class SegmentSerializer(serializers.Serializer):
     customer_id = serializers.CharField()
     cluster = serializers.IntegerField()
     distance = serializers.FloatField()
+    recency_days = serializers.FloatField()
+    frequency = serializers.FloatField()
+    monetary = serializers.FloatField()

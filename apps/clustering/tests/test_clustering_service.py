@@ -17,6 +17,12 @@ def test_separates_two_obvious_groups():
     assert len(cluster_a) == 1
     assert len(cluster_b) == 1
     assert cluster_a != cluster_b
+    # RFM features are carried on each segment for the CU09 scatter visualization
+    by_id = {s.customer_id: s for s in segments}
+    assert by_id["a1"].recency_days == 1
+    assert by_id["a1"].frequency == 20
+    assert by_id["a1"].monetary == 5000
+    assert by_id["b3"].recency_days == 220
 
 
 def test_returns_empty_for_empty_input():

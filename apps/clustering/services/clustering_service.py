@@ -25,6 +25,9 @@ class CustomerSegment:
     customer_id: str
     cluster: int
     distance: float
+    recency_days: float
+    frequency: float
+    monetary: float
 
 
 class ClusteringService:
@@ -56,6 +59,9 @@ class ClusteringService:
                     customer_id=row.customer_id,
                     cluster=int(labels[i]),
                     distance=float(distances[i]),
+                    recency_days=float(row.recency_days),
+                    frequency=float(row.frequency),
+                    monetary=float(row.monetary),
                 )
             )
         return out
@@ -79,6 +85,9 @@ class ClusteringService:
                         "customer_id": s.customer_id,
                         "cluster": s.cluster,
                         "distance": str(round(s.distance, 6)),
+                        "recency_days": str(round(s.recency_days, 6)),
+                        "frequency": str(round(s.frequency, 6)),
+                        "monetary": str(round(s.monetary, 6)),
                         "run_id": run_id,
                         "computed_at": run_meta["computed_at"],
                     }

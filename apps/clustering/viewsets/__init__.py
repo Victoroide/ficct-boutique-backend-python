@@ -29,7 +29,14 @@ class RunClusteringView(APIView):
                 "run": run,
                 "segments": SegmentSerializer(
                     [
-                        {"customer_id": s.customer_id, "cluster": s.cluster, "distance": s.distance}
+                        {
+                            "customer_id": s.customer_id,
+                            "cluster": s.cluster,
+                            "distance": s.distance,
+                            "recency_days": s.recency_days,
+                            "frequency": s.frequency,
+                            "monetary": s.monetary,
+                        }
                         for s in segments
                     ],
                     many=True,
@@ -51,6 +58,9 @@ class CustomerSegmentView(APIView):
                     "customer_id": item["customer_id"],
                     "cluster": int(item.get("cluster", -1)),
                     "distance": float(item.get("distance", 0.0)),
+                    "recency_days": float(item.get("recency_days", 0.0)),
+                    "frequency": float(item.get("frequency", 0.0)),
+                    "monetary": float(item.get("monetary", 0.0)),
                     "run_id": item.get("run_id", ""),
                     "computed_at": item.get("computed_at", ""),
                 }
@@ -70,6 +80,9 @@ class AllSegmentsView(APIView):
                         "customer_id": i["customer_id"],
                         "cluster": int(i.get("cluster", -1)),
                         "distance": float(i.get("distance", 0.0)),
+                        "recency_days": float(i.get("recency_days", 0.0)),
+                        "frequency": float(i.get("frequency", 0.0)),
+                        "monetary": float(i.get("monetary", 0.0)),
                         "run_id": i.get("run_id", ""),
                     }
                     for i in items
