@@ -1,6 +1,6 @@
 """DynamoDB table definitions used by `ensure_tables` management command."""
-from .client import get_resource, table_name
 
+from .client import get_resource, table_name
 
 TABLES = [
     {

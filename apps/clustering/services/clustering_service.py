@@ -1,4 +1,5 @@
 """Customer clustering using KMeans over RFM (Recency, Frequency, Monetary) features."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -34,7 +35,11 @@ class ClusteringService:
     TABLE_SEGMENTS = "customer_segments"
     TABLE_RUNS = "cluster_runs"
 
-    def fit_segments(self, features: Iterable[CustomerFeatures], *, k: int = 4) -> List[CustomerSegment]:
+    def fit_segments(
+        self, features: Iterable[CustomerFeatures], *, k: int = 4
+    ) -> List[CustomerSegment]:
+        """Standardize RFM features and fit KMeans, returning each customer's
+        cluster assignment and distance to its centroid."""
         rows = list(features)
         if not rows:
             return []
@@ -67,6 +72,8 @@ class ClusteringService:
         return out
 
     def persist(self, segments: List[CustomerSegment], *, metadata: dict) -> dict:
+        """Store a clustering run and its per-customer segments in DynamoDB,
+        returning the run metadata."""
         run_id = str(uuid4())
         run_meta = {
             "run_id": run_id,
@@ -95,10 +102,12 @@ class ClusteringService:
         return run_meta
 
     def segment_for(self, customer_id: str) -> dict:
+        """Return the stored segment record for a customer, or an empty dict."""
         resp = table(self.TABLE_SEGMENTS).get_item(Key={"customer_id": customer_id})
         return resp.get("Item") or {}
 
     def all_segments(self) -> List[dict]:
+        """Return all stored customer segment records from DynamoDB."""
         resp = table(self.TABLE_SEGMENTS).scan()
         return resp.get("Items", [])
 

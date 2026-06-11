@@ -1,4 +1,5 @@
 """Image similarity search against catalog embeddings."""
+
 from __future__ import annotations
 
 from typing import List
@@ -9,6 +10,8 @@ from .embedding_service import cosine_similarity, encode_image
 
 class SimilarityService:
     def search(self, image_bytes: bytes, *, top_k: int = 5) -> List[dict]:
+        """Encode the query image and return the top_k catalog products
+        ranked by cosine similarity to its embedding."""
         query_vec = encode_image(image_bytes)
         items = catalog_sync_service.all_embeddings()
         scored = []

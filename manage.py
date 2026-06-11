@@ -9,9 +9,7 @@ def main() -> None:
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you in the venv?"
-        ) from exc
+        raise ImportError("Couldn't import Django. Are you in the venv?") from exc
     execute_from_command_line(sys.argv)
 
 

@@ -1,4 +1,5 @@
 """Idempotently create all DynamoDB tables required by the AI service."""
+
 from django.core.management.base import BaseCommand
 
 from apps.common.dynamodb.schema import ensure_all

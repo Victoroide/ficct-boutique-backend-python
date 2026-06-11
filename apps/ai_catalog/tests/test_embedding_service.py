@@ -1,4 +1,5 @@
 """Unit tests for the embedding service — no Django or DynamoDB dependency."""
+
 from __future__ import annotations
 
 import io

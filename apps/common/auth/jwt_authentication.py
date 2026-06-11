@@ -1,4 +1,5 @@
 """RS256 JWT authentication for DRF — verifies tokens minted by the Go core."""
+
 from __future__ import annotations
 
 import functools

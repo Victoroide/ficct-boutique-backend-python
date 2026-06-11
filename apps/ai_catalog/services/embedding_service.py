@@ -12,6 +12,7 @@ and can be compared with cosine similarity. An interface seam (``encode_image``)
 makes it trivial to swap in a ResNet/CLIP backbone later without touching the
 similarity service.
 """
+
 from __future__ import annotations
 
 import io
@@ -70,6 +71,7 @@ def encode_image(image_bytes: bytes) -> List[float]:
 
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
+    """Return the cosine similarity of two equal-length embedding vectors."""
     if len(a) != len(b):
         raise ValueError("embedding dimension mismatch")
     av = np.array(a, dtype=np.float32)

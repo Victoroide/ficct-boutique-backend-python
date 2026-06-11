@@ -1,6 +1,7 @@
 """Base settings shared by dev / prod environments."""
-from pathlib import Path
+
 import os
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -111,7 +112,7 @@ LOGGING = {
     "formatters": {
         "json": {
             "format": '{"time":"%(asctime)s","level":"%(levelname)s",'
-                      '"logger":"%(name)s","msg":"%(message)s"}',
+            '"logger":"%(name)s","msg":"%(message)s"}',
         },
     },
     "handlers": {
@@ -122,9 +123,7 @@ LOGGING = {
 
 # Application-specific configuration
 FICCT_AI = {
-    "JWT_PUBLIC_KEY_PATH": os.getenv(
-        "JWT_PUBLIC_KEY_PATH", "/app/.tools/keys/jwt_public_dev.pem"
-    ),
+    "JWT_PUBLIC_KEY_PATH": os.getenv("JWT_PUBLIC_KEY_PATH", "/app/.tools/keys/jwt_public_dev.pem"),
     # Production injects the Go core prod public key as a PEM string (preferred
     # over the baked dev key file).
     "JWT_PUBLIC_KEY_PEM": os.getenv("JWT_PUBLIC_KEY_PEM", ""),

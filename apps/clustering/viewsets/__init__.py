@@ -2,11 +2,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.auth.permissions import IsAdminOrStaff
+
 from ..serializers import ClusterRequestSerializer, SegmentSerializer
 from ..services.clustering_service import ClusteringService, CustomerFeatures, clustering_service
 
 
 class RunClusteringView(APIView):
+    """POST endpoint: run RFM customer clustering and persist the segments.
+
+    Fits KMeans over the supplied customer RFM features, stores the run and its
+    segments, and returns both. Restricted to admin/staff.
+    """
+
     permission_classes = [IsAdminOrStaff]
 
     def post(self, request) -> Response:
@@ -23,7 +30,9 @@ class RunClusteringView(APIView):
             for row in serializer.validated_data["customers"]
         ]
         segments = clustering_service.fit_segments(features, k=serializer.validated_data["k"])
-        run = clustering_service.persist(segments, metadata={"k": serializer.validated_data["k"], "n": len(features)})
+        run = clustering_service.persist(
+            segments, metadata={"k": serializer.validated_data["k"], "n": len(features)}
+        )
         return Response(
             {
                 "run": run,
@@ -46,6 +55,12 @@ class RunClusteringView(APIView):
 
 
 class CustomerSegmentView(APIView):
+    """GET endpoint: return the latest segment assignment for one customer.
+
+    Looks up the stored cluster/segment for the given customer id, or null if
+    none exists. Restricted to admin/staff.
+    """
+
     permission_classes = [IsAdminOrStaff]
 
     def get(self, request, customer_id: str) -> Response:
@@ -69,6 +84,12 @@ class CustomerSegmentView(APIView):
 
 
 class AllSegmentsView(APIView):
+    """GET endpoint: list segment assignments for all customers.
+
+    Returns the stored cluster/segment record for every customer. Restricted
+    to admin/staff.
+    """
+
     permission_classes = [IsAdminOrStaff]
 
     def get(self, request) -> Response:

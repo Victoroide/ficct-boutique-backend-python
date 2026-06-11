@@ -5,6 +5,7 @@ implementation that runs on Python+numpy without statsmodels. It is enough to
 demonstrate the architecture: take a list of historical observations per scope
 (product, category, branch) and return a forecast horizon.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -54,19 +55,26 @@ class ForecastService:
             out.append(ForecastPoint(period_index=h, value=value))
         return out
 
-    def persist(self, scope: str, points: List[ForecastPoint], metadata: Optional[dict] = None) -> dict:
+    def persist(
+        self, scope: str, points: List[ForecastPoint], metadata: Optional[dict] = None
+    ) -> dict:
+        """Store a forecast for the given scope in DynamoDB and return the
+        persisted item."""
         computed_at = datetime.now(timezone.utc).isoformat()
         item = {
             "scope": scope,
             "computed_at": computed_at,
             "horizon": len(points),
-            "points": [{"period_index": p.period_index, "value": str(round(p.value, 4))} for p in points],
+            "points": [
+                {"period_index": p.period_index, "value": str(round(p.value, 4))} for p in points
+            ],
             "metadata": metadata or {},
         }
         table(self.TABLE).put_item(Item=item)
         return item
 
     def latest(self, scope: str) -> Optional[dict]:
+        """Return the most recently computed forecast for the scope, or None."""
         resp = table(self.TABLE).query(
             KeyConditionExpression="#s = :s",
             ExpressionAttributeNames={"#s": "scope"},

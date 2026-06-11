@@ -2,11 +2,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.auth.permissions import IsAdminOrStaff
+
 from ..serializers import ForecastRequestSerializer, ForecastResultSerializer
 from ..services.forecast_service import forecast_service
 
 
 class RunForecastView(APIView):
+    """POST endpoint: compute and persist a demand forecast for a scope.
+
+    Runs exponential-smoothing forecasting over the supplied historical series
+    and stores the result, returning the forecast points. Restricted to admin/staff.
+    """
+
     permission_classes = [IsAdminOrStaff]
 
     def post(self, request) -> Response:
@@ -36,6 +43,12 @@ class RunForecastView(APIView):
 
 
 class LatestForecastView(APIView):
+    """GET endpoint: return the most recent persisted forecast for a scope.
+
+    Looks up the latest stored forecast for the given scope, or null if none
+    exists. Restricted to admin/staff.
+    """
+
     permission_classes = [IsAdminOrStaff]
 
     def get(self, request, scope: str) -> Response:
