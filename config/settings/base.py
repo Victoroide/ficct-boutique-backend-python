@@ -100,11 +100,25 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-CORS_ALLOWED_ORIGINS = [
+# Production browser frontends (Angular Admin) are always trusted so that a
+# missing or partial CORS_ALLOWED_ORIGINS env var can never block the admin AI
+# panel (a missing Access-Control-Allow-Origin surfaces in the browser as
+# "Http failure response ... 0 Unknown Error"). These are public origins, not
+# secrets. The CORS_ALLOWED_ORIGINS env var still extends this set with any
+# additional origins (local dev, Expo web export, future frontends).
+CORS_DEFAULT_ALLOWED_ORIGINS = [
+    "https://angular-admin-production.up.railway.app",
+    "https://admin.boutique.ficct.com",
+]
+
+_cors_env_origins = [
     o.strip()
     for o in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:4200").split(",")
     if o.strip()
 ]
+
+# Order-preserving de-duplication: trusted defaults first, then env-only origins.
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(CORS_DEFAULT_ALLOWED_ORIGINS + _cors_env_origins))
 
 LOGGING = {
     "version": 1,
